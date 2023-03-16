@@ -1,5 +1,5 @@
 import  { createContext, useState, ReactNode, useContext, useEffect } from 'react'
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { useNavigate } from 'react-router';
 import { useToast } from '@chakra-ui/react'
 
@@ -14,7 +14,8 @@ interface contextInterface {
      getTask():void,
      user: any,
      changeTask(payload :Boolean, id:String):void,
-     deleteTask(id:String):void
+     deleteTask(id:String):void,
+     editTask(payload: String, id:String):void
 }
 
 export const ContextProviderG = createContext<contextInterface>({} as contextInterface);
@@ -59,9 +60,7 @@ const CProvider = ({ children }: { children: ReactNode }) => {
                const user: any = await axios.post("https://fine-erin-zebra.cyclic.app/user/signup", userData);
                if (!user) return alert("Some thing went wrong");
                setUser(user.data._id)
-               setTimeout(() => {
-                    navigate("/")
-               }, 1000)
+               
           } catch (error: any) {
                console.log('error: ', error.message);
           }
@@ -203,10 +202,38 @@ const data= JSON.parse(localStorage.getItem('todo')|| '{}') as MyObject;
           }
 
       }
+      const editTask=async(payload :String, id:String)=>{
+          const token= JSON.parse(localStorage.getItem('todo')|| '{}') as MyObject;
+          try {
+               const task:any = await axios({
+                    url: `https://fine-erin-zebra.cyclic.app/todo/${id}`,
+                   data:{
+                    task:payload
+                   },
+                    method: "PATCH",
+                    headers:{
+                         Authorization : token.token
+                    }
+
+               })   
+                     
+               if (!task) return alert("Some thing went wrong");
+               else{
+                    
+                    getTask()
+               }
+             
+            
+             
+          } catch (error: any) {
+               console.log('error: ', error.message);
+          }
+
+      }
  
 
      return (
-          <ContextProviderG.Provider value={{ LoginUser, user, logout, registerUser,getUser, addData, getTask, changeTask, deleteTask}}>
+          <ContextProviderG.Provider value={{ LoginUser, user, logout, registerUser,getUser, addData, getTask, changeTask, deleteTask, editTask}}>
                {children}
           </ContextProviderG.Provider>
      )

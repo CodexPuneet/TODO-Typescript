@@ -145,6 +145,7 @@ const NavItem = ({ icon, children, ...rest }: NavItemProps) => {
             as={icon}
           />
         )}
+        
         {children}
       </Flex>
     </Link>
@@ -185,6 +186,7 @@ React.useEffect(()=>{
       borderBottomColor={useColorModeValue('gray.200', 'gray.700')}
       justifyContent={{ base: 'space-between', md: 'flex-end' }}
       {...rest}>
+        
       <IconButton
         display={{ base: 'flex', md: 'none' }}
         onClick={onOpen}

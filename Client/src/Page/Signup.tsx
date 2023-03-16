@@ -12,12 +12,25 @@ import {
   AvatarGroup,
   useBreakpointValue,
   IconProps,
+  Center,
   Icon,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  useToast,
+  ModalCloseButton,
+  PinInput,
+  PinInputField,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { FormEvent, useState,useEffect } from 'react';
 import { useProvider } from "../Context/Provider";
 import { useNavigate } from "react-router";
 import { Link } from 'react-router-dom';
+import { useFirebase } from '../Components/Firebase';
 
 const avatars = [
   {
@@ -42,30 +55,61 @@ const avatars = [
     url: 'https://lh3.googleusercontent.com/a/AGNmyxaUx0GjZjGo0m86n-YnsjS3zwIsddi2crpRm0NS=s96-c-rg-br100',
   }
 ];
-
+interface fbase{
+  confirm:any
+}
 export default function Signup() {
   const navigate = useNavigate();
+   const {setUpCaptcha}=useFirebase();
+   const [otp,setotp]=useState("");
   const [email, setEmail]=useState("")
   const [password, setPassword]=useState("")
   const [name, setName]=useState("")
   const [phone, setPhone]=useState("")
-  const { user, registerUser } = useProvider();
+  const { user, registerUser } = useProvider()
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  
+  const [result, setResult] = useState<fbase>();
 
   const handleData = (e: FormEvent) => {
     e.preventDefault();
     registerUser({ email,password,name,phone});
   };
  
-
+  const handleSubmitotp=async()=>{
+    try{
+       let otps=await result?.confirm(otp);
+    console.log(otps)
+    setTimeout(() => {
+      navigate("/")
+ }, 1000)
+    }
+   catch(er){
+    console.log(er)
+   }
+    
+  }
 
   useEffect(() => {
     if (!user) return navigate("/register");
   }, [user]);
 
-  
+  const handlesubmitnum=async()=>{
+    try{
+       await onOpen();
+      const res:any=await setUpCaptcha(phone);
+      console.log(res)
+      setResult(res)
+    }
+    catch(er){
+      console.log(er)
+    }
+   
+  }
 
   return (
     <Box position={'relative'}>
+
       <Container
         as={SimpleGrid}
         maxW={'7xl'}
@@ -174,6 +218,35 @@ export default function Signup() {
             </Text>
           </Stack>
           <Box as={'form'} onSubmit={handleData} mt={10}>
+          <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Enter OTP</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Center> <Box id="recaptcha-container" mb={"30px"}>
+              </Box></Center>
+         
+            <Center>
+              <PinInput otp onChange={(e)=>setotp(e)}>
+                  <PinInputField />
+                  <PinInputField />
+                  <PinInputField />
+                  <PinInputField />
+                  <PinInputField />
+                  <PinInputField />
+              </PinInput>
+            </Center>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button colorScheme='pink' mr={3} onClick={onClose}>
+              Close
+            </Button>
+            <Button colorScheme="red" onClick={handleSubmitotp} >Submit</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
             <Stack spacing={4}>
             <Input
                 placeholder="Enter Your Name "
@@ -244,7 +317,11 @@ export default function Signup() {
               _hover={{
                 bgGradient: 'linear(to-r, red.400,pink.400)',
                 boxShadow: 'xl',
-              }}>
+                
+              }}
+              onClick={handlesubmitnum}
+              >
+
               Submit
             </Button>
 
